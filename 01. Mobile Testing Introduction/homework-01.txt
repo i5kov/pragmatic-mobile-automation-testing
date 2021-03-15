@@ -1,0 +1,23 @@
+Homework: Prepare for Day 2
+- Download applications and tools we will use in this course
+
+Instructions:
+
+1. Download Android SDK (or Android Studio):
+https://developer.android.com/studio#downloads
+
+2. Download Appium Desktop App:
+https://github.com/appium/appium-desktop/releases
+
+3. Download NodeJS:
+- Windows: Download from https://nodejs.org/en/ and run the installer
+- macOS: Install it with homebrew
+
+4. (mac only) Install Xcode from the App Store
+
+5. (mac only) Install homebrew:
+https://brew.sh/
+
+Notes:
+- Installation will be covered in Day 2.
+- If you feel you can manage with it alone - go ahead and install.
