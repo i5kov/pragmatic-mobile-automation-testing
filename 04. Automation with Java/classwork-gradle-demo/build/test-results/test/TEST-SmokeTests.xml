@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="SmokeTests" tests="2" skipped="0" failures="0" errors="0" timestamp="2021-03-29T17:16:15" hostname="WKS101046" time="0.037">
+  <properties/>
+  <testcase name="My Smoke Test 1" classname="SmokeTests" time="0.034"/>
+  <testcase name="My Smoke Test 2" classname="SmokeTests" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
