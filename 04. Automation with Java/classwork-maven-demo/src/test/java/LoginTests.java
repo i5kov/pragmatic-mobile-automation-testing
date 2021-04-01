@@ -1,24 +1,43 @@
-import org.testng.annotations.BeforeMethod;
+import io.appium.java_client.MobileBy;
+import io.appium.java_client.MobileElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.assertTrue;
 
 public class LoginTests extends MobileTest {
 
+    @Test
+    public void testLoginWithValidUser() {
+        // Go to login tab
+        driver.findElementByAccessibilityId("Login").click();
 
-    @BeforeMethod
-    public void beforeMethod() {
-        System.out.println("Navigate to login page.");
+        // Input username
+        MobileElement userName = driver.findElementByAccessibilityId("input-email");
+        userName.clear();
+        userName.sendKeys("dtopuzov@gmail.com");
+
+        // Input password
+        MobileElement password = driver.findElementByAccessibilityId("input-password");
+        password.clear();
+        password.sendKeys("mySecretPassword");
+
+        // Click login button
+        driver.findElementByAccessibilityId("button-LOGIN").click();
+
+        // Verify logged in
+        MobileElement title = driver.findElement(By.id("android:id/alertTitle"));
+        Assert.assertEquals(title.getText(), "Success");
     }
 
     @Test
-    public void loginTest1() {
-        assertTrue(true);
+    public void testLoginWithInvalidEmail() {
+        Assert.assertTrue(true);
     }
 
     @Test
-    public void loginTest2() {
-        assertTrue(true);
+    public void testLoginWithShortPassword() {
+        Assert.assertTrue(true);
     }
-
 }
