@@ -1,43 +1,35 @@
-import io.appium.java_client.MobileBy;
-import io.appium.java_client.MobileElement;
-import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.Assert;
+package wdio;
+
+import base.MobileTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import screens.LoginScreen;
 
 public class LoginTests extends MobileTest {
+    private LoginScreen loginScreen;
+
+    @BeforeMethod
+    public void beforeMethod() {
+        driver.resetApp();
+        loginScreen = new LoginScreen(driver);
+        loginScreen.navigateTo();
+    }
 
     @Test
-    public void testLoginWithValidUser() {
-        // Go to login tab
-        driver.findElementByAccessibilityId("Login").click();
-
-        // Input username
-        MobileElement userName = driver.findElementByAccessibilityId("input-email");
-        userName.clear();
-        userName.sendKeys("dtopuzov@gmail.com");
-
-        // Input password
-        MobileElement password = driver.findElementByAccessibilityId("input-password");
-        password.clear();
-        password.sendKeys("mySecretPassword");
-
-        // Click login button
-        driver.findElementByAccessibilityId("button-LOGIN").click();
-
-        // Verify logged in
-        MobileElement title = driver.findElement(By.id("android:id/alertTitle"));
-        Assert.assertEquals(title.getText(), "Success");
+    public void testLogin() {
+        loginScreen.login("dtopuzov@gmail.com", "12345678");
+        loginScreen.verifySuccessfulLogin();
     }
 
     @Test
     public void testLoginWithInvalidEmail() {
-        Assert.assertTrue(true);
+        loginScreen.login("dtopuzov", "12345678");
+        loginScreen.verifyErrorMessageDisplayed("Please enter a valid email address");
     }
 
     @Test
     public void testLoginWithShortPassword() {
-        Assert.assertTrue(true);
+        loginScreen.login("dtopuzov@gmail.com", "123");
+        loginScreen.verifyErrorMessageDisplayed("Please enter at least 8 characters");
     }
 }
