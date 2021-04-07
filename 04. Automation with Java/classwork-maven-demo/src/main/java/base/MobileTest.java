@@ -10,11 +10,9 @@ import io.appium.java_client.service.local.flags.GeneralServerFlag;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeTest;
+import settings.Settings;
 
-import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 
 public class MobileTest {
@@ -30,20 +28,24 @@ public class MobileTest {
         server = AppiumDriverLocalService.buildService(serviceBuilder);
         server.start();
 
+        Settings settings = new Settings();
         DesiredCapabilities caps = new DesiredCapabilities();
-        caps.setCapability(MobileCapabilityType.PLATFORM_NAME, "Android");
-        caps.setCapability(MobileCapabilityType.DEVICE_NAME, "MyDevice");
-        caps.setCapability(MobileCapabilityType.UDID, "RF8N715NJ0B");
-        caps.setCapability(MobileCapabilityType.APP, "/Users/topuzov/git/pragmatic-mobile-testing/appium/testapps/Android-NativeDemoApp-0.2.1.apk");
+        caps.setCapability(MobileCapabilityType.PLATFORM_NAME, settings.getPlatform());
+        caps.setCapability(MobileCapabilityType.DEVICE_NAME, settings.getDeviceName());
+        caps.setCapability(MobileCapabilityType.UDID, settings.getUdid());
+        caps.setCapability(MobileCapabilityType.APP, settings.getAppPath());
 
-        if (ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp")) {
+        // Allow debug more than 120 seconds
+        if (settings.isDebug()) {
             caps.setCapability(MobileCapabilityType.NEW_COMMAND_TIMEOUT, 3600);
         } else {
             caps.setCapability(MobileCapabilityType.NEW_COMMAND_TIMEOUT, 120);
         }
 
-        WebDriverManager.chromedriver().driverVersion("89.0.4389.23").setup();
-        String path = WebDriverManager.chromedriver().driverVersion("89.0.4389.23").getDownloadedDriverPath();
+        // Handle web views
+        String chromeDriverVersion = settings.getChromeDriverVersion();
+        WebDriverManager.chromedriver().driverVersion(chromeDriverVersion).setup();
+        String path = WebDriverManager.chromedriver().driverVersion(chromeDriverVersion).getDownloadedDriverPath();
         caps.setCapability(AndroidMobileCapabilityType.CHROMEDRIVER_EXECUTABLE, path);
 
         driver = new AppiumDriver<MobileElement>(server.getUrl(), caps);
