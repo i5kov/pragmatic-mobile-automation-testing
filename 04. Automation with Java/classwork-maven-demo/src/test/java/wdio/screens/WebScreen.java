@@ -3,7 +3,6 @@ package wdio.screens;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileBy;
 import io.appium.java_client.MobileElement;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -14,8 +13,11 @@ import org.testng.Assert;
 
 import java.util.Set;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
+
 public class WebScreen {
-    private AppiumDriver<MobileElement> driver;
+    private final AppiumDriver<MobileElement> driver;
     private WebDriverWait wait;
 
     public WebScreen(AppiumDriver<MobileElement> driver) {
@@ -25,10 +27,14 @@ public class WebScreen {
     @Step("Go to WebView tab")
     public void navigateTo() {
         driver.findElement(MobileBy.AccessibilityId("WebView")).click();
+
+        await().atMost(30, SECONDS).until(() -> driver.getContextHandles().size() > 1);
+
         Set<String> contextNames = driver.getContextHandles();
         for (String contextName : contextNames) {
             if (contextName.toLowerCase().contains("web")) {
                 driver.context(contextName);
+                await().atMost(30, SECONDS).until(() -> driver.getPageSource().contains("html"));
                 wait = new WebDriverWait(driver, 30);
             }
         }

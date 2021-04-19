@@ -15,7 +15,7 @@ public class SwipeTests extends MobileTest {
     public void beforeMethod() {
         driver.resetApp();
         swipeScreen = new SwipeScreen(driver);
-        swipeScreen.navigateTo();
+        swipeScreen.footer.navigateTo("Swipe");
     }
 
     @Test
@@ -24,7 +24,6 @@ public class SwipeTests extends MobileTest {
 
         swipeScreen.swipe(Direction.LEFT);
         swipeScreen.verifyTextVisible("CREAT COMMUNITY");
-        Assert.assertTrue(false);
 
         swipeScreen.swipe(Direction.RIGHT);
         swipeScreen.verifyTextVisible("FULLY OPEN SOURCE");

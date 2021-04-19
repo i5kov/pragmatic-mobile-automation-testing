@@ -1,18 +1,20 @@
 package com.pragmatic.framework.base;
 
 import com.pragmatic.framework.enums.Direction;
+import com.pragmatic.framework.settings.Settings;
+import com.pragmatic.framework.utils.Image;
+import com.pragmatic.framework.utils.ImageComparisonResult;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileBy;
 import io.appium.java_client.MobileElement;
 import io.appium.java_client.TouchAction;
+import io.appium.java_client.pagefactory.AppiumFieldDecorator;
 import io.appium.java_client.remote.AutomationName;
 import io.appium.java_client.touch.WaitOptions;
 import io.appium.java_client.touch.offset.PointOption;
 import io.qameta.allure.Step;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.PageFactory;
 import org.testng.Assert;
 
 import javax.imageio.ImageIO;
@@ -20,6 +22,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("rawtypes")
 public class MobileScreen {
@@ -27,6 +31,7 @@ public class MobileScreen {
 
     public MobileScreen(AppiumDriver<MobileElement> driver) {
         this.driver = driver;
+        PageFactory.initElements(new AppiumFieldDecorator(driver), this);
     }
 
     public MobileElement findByText(String text) {
@@ -53,7 +58,7 @@ public class MobileScreen {
         } else {
             throw new RuntimeException("Unsupported automation technology: " + automation);
         }
-        return (MobileElement) driver.findElement(locator);
+        return driver.findElement(locator);
     }
 
     @Step("Verify '{text}' text is visible")
@@ -62,7 +67,7 @@ public class MobileScreen {
     }
 
     public void swipe(Direction direction) {
-        swipe(direction, 20, 500);
+        swipe(direction, 20);
     }
 
     public void swipe(Direction direction, int offsetPercent) {
@@ -112,5 +117,75 @@ public class MobileScreen {
         } catch (IOException e) {
             throw new RuntimeException("Failed to take screenshot.", e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public Rectangle getViewPortRectangle() {
+        Map<String, Object> caps = driver.getSessionDetails();
+        Map<String, Object> viewportRect = (Map<String, Object>) caps.get("viewportRect");
+        int x = Integer.parseInt(viewportRect.get("left").toString());
+        int y = Integer.parseInt(viewportRect.get("top").toString());
+        int width = Integer.parseInt(viewportRect.get("width").toString()) + x;
+        int height = Integer.parseInt(viewportRect.get("height").toString()) + y;
+        return new Rectangle(x, y, height, width);
+    }
+
+    public void match(String image) {
+        match(image, 0.01);
+    }
+
+    public void match(String image, double tolerance) {
+        match(image, tolerance, 10);
+    }
+
+    @Step("Compare current screen with '{0}' image")
+    public void match(String image, double tolerance, int timeout) {
+        String deviceName = driver.getCapabilities().getCapability("deviceName").toString().toLowerCase();
+        String imageName = deviceName.replace(" ", "") + File.separator + image + ".png";
+        String projectRoot = System.getProperty("user.dir");
+        String resources = projectRoot + File.separator + "src" + File.separator + "test" + File.separator + "resources";
+        String expectedImagePath = resources + File.separator + imageName;
+
+        if (new File(expectedImagePath).exists()) {
+            ImageComparisonResult result;
+
+            boolean match = false;
+            long startTime = System.currentTimeMillis();
+            do {
+                result = compareScreen(expectedImagePath);
+                if (result.diffPercent <= tolerance) {
+                    match = true;
+                }
+            } while (!match && System.currentTimeMillis() - startTime < timeout * 1000L);
+
+            // Save actual and diff image
+            if (result.diffPercent > tolerance) {
+                Image.save(result.actualImage, expectedImagePath.replace(".png", "_actual.png"));
+                Image.save(result.diffImage, expectedImagePath.replace(".png", "_diff.png"));
+            }
+
+            // Verify result
+            Assert.assertTrue(result.diffPercent <= tolerance,
+                    String.format("Current screen does not match '%s' image.", image));
+        } else {
+            BufferedImage actualImage = getScreenshot();
+            Image.save(actualImage, expectedImagePath);
+        }
+    }
+
+    private ImageComparisonResult compareScreen(String expectedImagePath) {
+        BufferedImage actualImage = getScreenshot();
+        Rectangle viewPort = getViewPortRectangle();
+        BufferedImage expectedImage = Image.fromFile(expectedImagePath);
+
+        // On new iOS devices (iPhone 11, iPhone X*) viewport rectangle is way smaller than actual size
+        if (actualImage.getWidth() > viewPort.getWidth()) {
+            viewPort.setWidth(actualImage.getWidth());
+        }
+        if (actualImage.getHeight() > viewPort.getHeight()) {
+            viewPort.setHeight(actualImage.getHeight());
+        }
+
+        return Image.compare(actualImage, expectedImage, viewPort, 10);
     }
 }

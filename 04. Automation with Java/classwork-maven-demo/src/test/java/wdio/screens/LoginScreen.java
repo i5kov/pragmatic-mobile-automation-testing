@@ -2,57 +2,64 @@ package wdio.screens;
 
 import com.pragmatic.framework.base.MobileScreen;
 import io.appium.java_client.AppiumDriver;
-import io.appium.java_client.MobileBy;
 import io.appium.java_client.MobileElement;
-import io.appium.java_client.remote.AutomationName;
+import io.appium.java_client.pagefactory.AndroidFindBy;
+import io.appium.java_client.pagefactory.iOSXCUITFindBy;
 import io.qameta.allure.Step;
-import org.openqa.selenium.By;
+import org.openqa.selenium.support.CacheLookup;
 import org.testng.Assert;
+import wdio.widgets.Footer;
 
 public class LoginScreen extends MobileScreen {
+    public Footer footer;
+
+    @CacheLookup()
+    @AndroidFindBy(accessibility = "input-email")
+    @iOSXCUITFindBy(accessibility = "input-email")
+    private MobileElement inputEmail;
+
+    @CacheLookup()
+    @AndroidFindBy(accessibility = "input-password")
+    @iOSXCUITFindBy(accessibility = "input-password")
+    private MobileElement inputPassword;
+
+    @CacheLookup()
+    @AndroidFindBy(accessibility = "button-LOGIN")
+    @iOSXCUITFindBy(accessibility = "button-LOGIN")
+    private MobileElement loginButton;
+
+    @AndroidFindBy(id = "android:id/alertTitle")
+    @iOSXCUITFindBy(iOSClassChain = "**/XCUIElementTypeStaticText[`label == \"Success\"`]")
+    private MobileElement successMessage;
+
     public LoginScreen(AppiumDriver<MobileElement> driver) {
         super(driver);
+        this.footer = new Footer(driver);
     }
 
     @Step("Go to Login tab")
     public void navigateTo() {
-        driver.findElement(MobileBy.AccessibilityId("Login")).click();
+        footer.navigateTo("Login");
         verifyLoaded();
     }
 
     @Step("Verify Login screen loaded")
     public void verifyLoaded() {
-        MobileElement loginButton = driver.findElement(MobileBy.AccessibilityId("button-LOGIN"));
         Assert.assertTrue(loginButton.isDisplayed());
     }
 
-
     @Step("Login with '{user}:{password}'")
     public void login(String user, String password) {
-        // Input username
-        MobileElement userName = driver.findElement(MobileBy.AccessibilityId("input-email"));
-        userName.clear();
-        userName.sendKeys(user);
-
-        // Input password
-        MobileElement passwordInput = driver.findElement(MobileBy.AccessibilityId("input-password"));
-        passwordInput.clear();
-        passwordInput.sendKeys(password);
-
-        // Click login button
-        driver.findElement(MobileBy.AccessibilityId("button-LOGIN")).click();
+        inputEmail.clear();
+        inputEmail.sendKeys(user);
+        inputPassword.clear();
+        inputPassword.sendKeys(password);
+        loginButton.click();
     }
 
     @Step("Verify user logged in successfully")
     public void verifySuccessfulLogin() {
-        String automation = driver.getCapabilities().getCapability("automationName").toString();
-        if (automation.equalsIgnoreCase(AutomationName.ANDROID_UIAUTOMATOR2)) {
-            MobileElement title = driver.findElement(By.id("android:id/alertTitle"));
-            Assert.assertEquals(title.getText(), "Success");
-        } else {
-            MobileElement message = findByText("You are logged in!");
-            Assert.assertTrue(message.isDisplayed());
-        }
+        Assert.assertTrue(successMessage.isDisplayed());
     }
 
     @Step("Verify '{message}' message displayed.")

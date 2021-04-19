@@ -2,6 +2,7 @@ package wdio.tests;
 
 import com.pragmatic.framework.base.MobileTest;
 import org.openqa.selenium.ScreenOrientation;
+import org.openqa.selenium.WebDriverException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import wdio.screens.HomeScreen;
@@ -36,13 +37,13 @@ public class SystemTests extends MobileTest {
         driver.resetApp();
         HomeScreen homeScreen = new HomeScreen(driver);
         homeScreen.verifyLoaded();
+        homeScreen.footer.navigateTo("Swipe");
     }
 
-    @Test
+    @Test(enabled = false)
     public void testNavigateBack() {
         LoginScreen loginScreen = new LoginScreen(driver);
         loginScreen.navigateTo();
-
         driver.navigate().back();
         HomeScreen homeScreen = new HomeScreen(driver);
         homeScreen.verifyLoaded();
@@ -55,11 +56,11 @@ public class SystemTests extends MobileTest {
 
         try {
             driver.rotate(ScreenOrientation.LANDSCAPE);
-        } catch (org.openqa.selenium.InvalidElementStateException ignored) {
+        } catch (WebDriverException ignore) {
         }
     }
 
-    @Test(expectedExceptions = {org.openqa.selenium.InvalidElementStateException.class})
+    @Test(expectedExceptions = {WebDriverException.class})
     public void testRotateAppVariant2() {
         LoginScreen loginScreen = new LoginScreen(driver);
         loginScreen.navigateTo();
